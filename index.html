@@ -388,14 +388,8 @@
                 <p><strong>Partage de contenu :</strong> Créez des liens pour vos textes, articles, notes</p>
                 <p><strong>Réducteur de liens :</strong> Raccourcissez vos URLs trop longues pour les réseaux sociaux</p>
             </div>
-
-            <div class="warning-box">
-                <h2>Service gratuit avec GitHub Gists</h2>
-                <p>Ce service utilise GitHub Gists (gratuit et public). Vos contenus sont hébergés publiquement.</p>
-                <p>Les liens créés sont permanents et fonctionnent partout dans le monde.</p>
-            </div>
-
-            <div class="main-card">
+<div class="warning-box"> <h2>Service gratuit avec dpaste.com</h2> <p>Ce service utilise dpaste.com (gratuit et public). Vos contenus sont hébergés publiquement.</p> <p>Les liens créés expirent après 1 an.</p> </div>
+                     <div class="main-card">
                 <div class="mode-selector">
                     <button id="modeText" class="mode-btn active">
                         Partager du contenu
@@ -497,34 +491,33 @@ async function createTextLink(title, content) {
     submitBtn.innerHTML = '<span class="loading"></span>Création en cours...';
     
     try {
-        const gistData = {
-            description: title || 'Contenu partagé via Grantexte',
-            public: true,
-            files: {
-                'content.txt': {
-                    content: JSON.stringify({
-                        type: 'text',
-                        title: title || 'Contenu partagé',
-                        content: content,
-                        created: new Date().toISOString()
-                    })
-                }
-            }
-        };
+        const textData = JSON.stringify({
+            type: 'text',
+            title: title || 'Contenu partagé',
+            content: content,
+            created: new Date().toISOString()
+        });
 
-        const response = await fetch('https://api.github.com/gists', {
+        const formData = new FormData();
+        formData.append('content', textData);
+        formData.append('syntax', 'text');
+        formData.append('expiry_days', 365);
+
+        const response = await fetch('https://dpaste.com/api/v2/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(gistData)
+            body: formData
         });
 
         if (!response.ok) throw new Error('Erreur création');
         
-        const data = await response.json();
-        currentGistId = data.id;
-        const shareUrl = window.location.origin + window.location.pathname + '?t=' + data.id;
+        const pasteUrl = await response.text();
+        const pasteId = pasteUrl.trim().split('/').filter(Boolean).pop();
+        currentGistId = pasteId;
+        
+        const shareUrl = window.location.origin + window.location.pathname + '?t=' + pasteId;
         showResult(shareUrl, 'text');
     } catch (error) {
+        console.error('Erreur:', error);
         showError('Impossible de créer le lien. Vérifiez votre connexion.', 'errorMessage');
     } finally {
         submitBtn.disabled = false;
@@ -539,34 +532,33 @@ async function createUrlLink(title, url) {
     submitBtn.innerHTML = '<span class="loading"></span>Création en cours...';
     
     try {
-        const gistData = {
-            description: title || 'Lien raccourci via Grantexte',
-            public: true,
-            files: {
-                'redirect.txt': {
-                    content: JSON.stringify({
-                        type: 'url',
-                        title: title || 'Lien raccourci',
-                        targetUrl: url,
-                        created: new Date().toISOString()
-                    })
-                }
-            }
-        };
+        const urlData = JSON.stringify({
+            type: 'url',
+            title: title || 'Lien raccourci',
+            targetUrl: url,
+            created: new Date().toISOString()
+        });
 
-        const response = await fetch('https://api.github.com/gists', {
+        const formData = new FormData();
+        formData.append('content', urlData);
+        formData.append('syntax', 'text');
+        formData.append('expiry_days', 365);
+
+        const response = await fetch('https://dpaste.com/api/v2/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(gistData)
+            body: formData
         });
 
         if (!response.ok) throw new Error('Erreur création');
         
-        const data = await response.json();
-        currentGistId = data.id;
-        const shareUrl = window.location.origin + window.location.pathname + '?u=' + data.id;
+        const pasteUrl = await response.text();
+        const pasteId = pasteUrl.trim().split('/').filter(Boolean).pop();
+        currentGistId = pasteId;
+        
+        const shareUrl = window.location.origin + window.location.pathname + '?u=' + pasteId;
         showResult(shareUrl, 'url');
     } catch (error) {
+        console.error('Erreur:', error);
         showError('Impossible de créer le lien. Vérifiez votre connexion.', 'urlErrorMessage');
     } finally {
         submitBtn.disabled = false;
@@ -584,12 +576,11 @@ function showResult(shareUrl, type) {
 
 async function loadText(textId) {
     try {
-        const response = await fetch('https://api.github.com/gists/' + textId);
+        const response = await fetch('https://dpaste.com/' + textId + '.txt');
         if (!response.ok) throw new Error('Contenu non trouvé');
         
-        const gist = await response.json();
-        const file = Object.values(gist.files)[0];
-        const data = JSON.parse(file.content);
+        const textContent = await response.text();
+        const data = JSON.parse(textContent);
 
         if (data.type === 'url') {
             showRedirectPage(data);
@@ -608,6 +599,7 @@ async function loadText(textId) {
         document.getElementById('textDisplay').classList.add('show');
         document.title = data.title + ' - Grantexte';
     } catch (error) {
+        console.error('Erreur:', error);
         showTextError(textId);
     }
 }
@@ -638,6 +630,7 @@ function showError(message, elementId) {
     errorDiv.classList.add('show');
     setTimeout(() => errorDiv.classList.remove('show'), 10000);
 }
+
 function copyUrl() {
     const url = document.getElementById('resultUrl').textContent;
     navigator.clipboard.writeText(url).then(() => {
@@ -712,7 +705,6 @@ function copyCurrentUrl() {
     });
 }
 
-// Événements
 document.getElementById('modeText').addEventListener('click', () => switchMode('text'));
 document.getElementById('modeUrl').addEventListener('click', () => switchMode('url'));
 
@@ -754,7 +746,6 @@ document.getElementById('backHomeBtn').addEventListener('click', backToHome);
 document.getElementById('copyTextBtn').addEventListener('click', copyTextContent);
 document.getElementById('copyCurrentUrlBtn').addEventListener('click', copyCurrentUrl);
 
-// Navigation
 window.addEventListener('popstate', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const textId = urlParams.get('t') || urlParams.get('u');
@@ -765,20 +756,17 @@ window.addEventListener('popstate', () => {
     }
 });
 
-// Chargement initial
 const urlParams = new URLSearchParams(window.location.search);
 const textId = urlParams.get('t') || urlParams.get('u');
 if (textId) {
     loadText(textId);
 }
 
-// Touche Echap
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.getElementById('resultSection').classList.contains('show')) {
         backToHome();
     }
 });
-    </script>
-</body>
-</html>
+</script>
+
 
