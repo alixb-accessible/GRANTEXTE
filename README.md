@@ -1,7 +1,5 @@
-# GRANTEXTE
+# GRANTEXTE -  Service de partage de liens et contenus
 Partagez vos contenus longs (communiqués de presse dans ALT TEXT) et réduisez la taille de vos URL
-
-# Grantexte - Service de partage de liens et contenus
 
 ## Description
 
@@ -76,6 +74,5 @@ Créé par **TiRacoon** - Pour un monde virtuel plus accessible
 
 Voir la licence dédiée. Surtout si vous êtes de droite, de la fausse gauche. 
 
----
 
 **Note importante** : Ce service est fourni "tel quel", sans garantie d'aucune sorte. L'hébergement gratuit via GitHub Gists est soumis aux conditions d'utilisation de GitHub.
