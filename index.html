@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grantexte - Partage de liens et contenus</title>
+    <link rel="stylesheet" href="https://alixb-accessible.github.io/faites-mieux-toolbar/faites-mieux.css">
+    <script src="https://alixb-accessible.github.io/faites-mieux-toolbar/faites-mieux.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Lexend', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, 
+                #4a4a4a 0%, #4a4a4a 14.28%,
+                #22c55e 14.28%, #22c55e 28.56%,
+                #3b82f6 28.56%, #3b82f6 42.84%,
+                #ffffff 42.84%, #ffffff 57.12%,
+                #fbbf24 57.12%, #fbbf24 71.4%,
+                #dc2626 71.4%, #dc2626 85.68%,
+                #4a4a4a 85.68%, #4a4a4a 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+        
+        .skip-link:focus { top: 0; }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 3.5rem;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .header p {
+            color: #444;
+            font-size: 1.4rem;
+            margin: 1rem 0 0 0;
+            font-weight: 400;
+        }
+        
+        .main-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .form-section { padding: 2.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: #1f2937;
+            font-size: 1.2rem;
+        }
+        
+        input[type="text"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 1.2rem;
+            border: 3px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            transition: border-color 0.3s ease;
+            font-family: 'Lexend', inherit;
+            color: #111827;
+            font-weight: 400;
+        }
+        
+        input[type="text"]:focus,
+        input[type="url"]:focus,
+        textarea:focus {
+            outline: 3px solid #4338ca;
+            outline-offset: 2px;
+            border-color: #4338ca;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.3rem 2rem;
+            border-radius: 8px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            font-family: 'Lexend', inherit;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:focus {
+            outline: 3px solid #fbbf24;
+            outline-offset: 3px;
+        }
+        
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
+            background: #f8fafc;
+            padding: 2.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: none;
+        }
+        
+        .result-section.show { display: block; }
+        
+        .result-url {
+            background: white;
+            border: 3px solid #10b981;
+            border-radius: 8px;
+            padding: 1.3rem;
+            margin: 1rem 0;
+            font-family: 'Lexend', monospace;
+            font-size: 1.3rem;
+            word-break: break-all;
+            color: #047857;
+            font-weight: 500;
+        }
+        
+        .copy-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 1rem 1.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 1rem;
+            margin-bottom: 0.8rem;
+            transition: background-color 0.2s ease;
+            font-size: 1.1rem;
+            font-family: 'Lexend', inherit;
+        }
+        
+        .copy-btn:hover { background: #059669; }
+        .copy-btn:focus {
+            outline: 3px solid #fbbf24;
+            outline-offset: 3px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .text-display {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .text-display.show { display: block; }
+        
+        .text-content {
+            font-size: 1.4rem;
+            line-height: 1.9;
+            color: #111827;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .text-title {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1.5rem;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 0.8rem;
+        }
+        
+        .back-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 1rem 1.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            transition: background-color 0.2s ease;
+            font-size: 1.1rem;
+            font-family: 'Lexend', inherit;
+        }
+        
+        .back-btn:hover { background: #4b5563; }
+        .back-btn:focus {
+            outline: 3px solid #fbbf24;
+            outline-offset: 3px;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #7f1d1d;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #dc2626;
+            display: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .error-message.show { display: block; }
+        
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #10b981;
+            display: none;
+        }
+        
+        .success-message.show { display: block; }
+        
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-box h2 {
+            color: #1e40af;
+            margin: 0 0 1rem 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .info-box p {
+            color: #1e3a8a;
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .warning-box h2 {
+            color: #92400e;
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .warning-box p {
+            color: #78350f;
+            margin: 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .mode-selector {
+            display: flex;
+            overflow: hidden;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 1.5rem;
+            border: none;
+            background: #e5e7eb;
+            color: #374151;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Lexend', inherit;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:focus {
+            outline: 3px solid #fbbf24;
+            outline-offset: -3px;
+            z-index: 1;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .mode-btn:hover:not(.active) { background: #d1d5db; }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    
+    <div class="container">
+        <header class="header">
+            <h1>Grantexte</h1>
+            <p>Partagez vos liens et contenus facilement</p>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">Créé par Tiracoon</p>
+        </header>
+
+        <main id="main-content">
+            <div class="info-box">
+                <h2>2 outils en 1 - Choisissez votre besoin</h2>
+                <p><strong>Partage de contenu :</strong> Créez des liens pour vos textes, articles, notes</p>
+                <p><strong>Réducteur de liens :</strong> Raccourcissez vos URLs trop longues pour les réseaux sociaux</p>
+            </div>
+
+            <div class="warning-box">
+                <h2>Service gratuit avec GitHub Gists</h2>
+                <p>Ce service utilise GitHub Gists (gratuit et public). Vos contenus sont hébergés publiquement.</p>
+                <p>Les liens créés sont permanents et fonctionnent partout dans le monde.</p>
+            </div>
+
+            <div class="main-card">
+                <div class="mode-selector">
+                    <button id="modeText" class="mode-btn active">
+                        Partager du contenu
+                    </button>
+                    <button id="modeUrl" class="mode-btn">
+                        Réduire un lien
+                    </button>
+                </div>
+
+                <div class="form-section" id="textMode">
+                    <form id="textForm">
+                        <div class="form-group">
+                            <label for="title">Titre du contenu (optionnel)</label>
+                            <input type="text" id="title" placeholder="Ex: Mon article de blog, Mes notes...">
+                        </div>
+                        <div class="form-group">
+                            <label for="content">Votre contenu</label>
+                            <textarea id="content" placeholder="Collez votre texte, écrivez votre contenu... Sans limite de caractères" required></textarea>
+                        </div>
+                        <button type="submit" class="btn" id="submitBtn">Créer le lien de partage</button>
+                    </form>
+                    <div class="error-message" id="errorMessage" role="alert"></div>
+                </div>
+
+                <div class="form-section" id="urlMode" style="display: none;">
+                    <form id="urlForm">
+                        <div class="form-group">
+                            <label for="urlTitle">Titre du lien (optionnel)</label>
+                            <input type="text" id="urlTitle" placeholder="Ex: Article intéressant, Vidéo sympa...">
+                        </div>
+                        <div class="form-group">
+                            <label for="urlInput">URL à raccourcir</label>
+                            <input type="url" id="urlInput" placeholder="https://exemple.com/mon-super-long-url-a-raccourcir..." required>
+                        </div>
+                        <button type="submit" class="btn" id="submitUrlBtn">Créer le lien raccourci</button>
+                    </form>
+                    <div class="error-message" id="urlErrorMessage" role="alert"></div>
+                </div>
+
+                <div class="result-section" id="resultSection">
+                    <h2 id="resultTitle">Lien créé avec succès</h2>
+                    <p>Copiez ce lien et partagez-le où vous voulez :</p>
+                    <div class="result-url" id="resultUrl" tabindex="0"></div>
+                    <button class="copy-btn" id="copyUrlBtn">Copier le lien</button>
+                    <button class="copy-btn" id="twitterBtn" style="background: #1da1f2;">Partager sur Twitter</button>
+                    <button class="copy-btn" id="blueskyBtn" style="background: #00a8e8;">Partager sur Bluesky</button>
+                    <button class="copy-btn" id="facebookBtn" style="background: #1877f2;">Partager sur Facebook</button>
+                    <button class="copy-btn" id="previewBtn" style="background: #667eea;">Prévisualiser</button>
+                    <button class="back-btn" id="newTextBtn">Créer un nouveau lien</button>
+                    <div class="success-message" id="successMessage">Lien copié dans le presse-papier</div>
+                </div>
+            </div>
+
+            <div class="text-display" id="textDisplay">
+                <button class="back-btn" id="backHomeBtn">Retour à l'accueil</button>
+                <h1 class="text-title" id="displayTitle"></h1>
+                <div class="text-meta" id="textMeta" style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb;"></div>
+                <div class="text-content" id="displayContent"></div>
+                <div class="text-actions" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+                    <button class="copy-btn" id="copyTextBtn">Copier le texte</button>
+                    <button class="copy-btn" id="copyCurrentUrlBtn" style="background: #667eea;">Copier le lien</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            TiRacoon - Pour un monde virtuel plus accessible
+        </footer>
+    </div>
+
+    <script>
+let currentGistId = null;
+let currentMode = 'text';
+
+function switchMode(mode) {
+    currentMode = mode;
+    const textMode = document.getElementById('textMode');
+    const urlMode = document.getElementById('urlMode');
+    const textBtn = document.getElementById('modeText');
+    const urlBtn = document.getElementById('modeUrl');
+    
+    if (mode === 'text') {
+        textMode.style.display = 'block';
+        urlMode.style.display = 'none';
+        textBtn.classList.add('active');
+        urlBtn.classList.remove('active');
+    } else {
+        textMode.style.display = 'none';
+        urlMode.style.display = 'block';
+        textBtn.classList.remove('active');
+        urlBtn.classList.add('active');
+    }
+}
+
+async function createTextLink(title, content) {
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading"></span>Création en cours...';
+    
+    try {
+        const gistData = {
+            description: title || 'Contenu partagé via Grantexte',
+            public: true,
+            files: {
+                'content.txt': {
+                    content: JSON.stringify({
+                        type: 'text',
+                        title: title || 'Contenu partagé',
+                        content: content,
+                        created: new Date().toISOString()
+                    })
+                }
+            }
+        };
+
+        const response = await fetch('https://api.github.com/gists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(gistData)
+        });
+
+        if (!response.ok) throw new Error('Erreur création');
+        
+        const data = await response.json();
+        currentGistId = data.id;
+        const shareUrl = window.location.origin + window.location.pathname + '?t=' + data.id;
+        showResult(shareUrl, 'text');
+    } catch (error) {
+        showError('Impossible de créer le lien. Vérifiez votre connexion.', 'errorMessage');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+async function createUrlLink(title, url) {
+    const submitBtn = document.getElementById('submitUrlBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading"></span>Création en cours...';
+    
+    try {
+        const gistData = {
+            description: title || 'Lien raccourci via Grantexte',
+            public: true,
+            files: {
+                'redirect.txt': {
+                    content: JSON.stringify({
+                        type: 'url',
+                        title: title || 'Lien raccourci',
+                        targetUrl: url,
+                        created: new Date().toISOString()
+                    })
+                }
+            }
+        };
+
+        const response = await fetch('https://api.github.com/gists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(gistData)
+        });
+
+        if (!response.ok) throw new Error('Erreur création');
+        
+        const data = await response.json();
+        currentGistId = data.id;
+        const shareUrl = window.location.origin + window.location.pathname + '?u=' + data.id;
+        showResult(shareUrl, 'url');
+    } catch (error) {
+        showError('Impossible de créer le lien. Vérifiez votre connexion.', 'urlErrorMessage');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function showResult(shareUrl, type) {
+    document.getElementById('resultUrl').textContent = shareUrl;
+    document.getElementById('textMode').style.display = 'none';
+    document.getElementById('urlMode').style.display = 'none';
+    document.getElementById('resultSection').classList.add('show');
+    document.getElementById('resultTitle').textContent = type === 'url' ? 'Lien raccourci créé avec succès' : 'Lien de partage créé avec succès';
+}
+
+async function loadText(textId) {
+    try {
+        const response = await fetch('https://api.github.com/gists/' + textId);
+        if (!response.ok) throw new Error('Contenu non trouvé');
+        
+        const gist = await response.json();
+        const file = Object.values(gist.files)[0];
+        const data = JSON.parse(file.content);
+
+        if (data.type === 'url') {
+            showRedirectPage(data);
+            return;
+        }
+        
+        document.getElementById('displayTitle').textContent = data.title || 'Contenu partagé';
+        document.getElementById('displayContent').textContent = data.content;
+        document.getElementById('textMeta').textContent = 'Créé le ' + new Date(data.created).toLocaleString('fr-FR') + ' • ' + data.content.length + ' caractères';
+        
+        currentGistId = textId;
+        document.querySelector('.header').style.display = 'none';
+        document.querySelector('.info-box').style.display = 'none';
+        document.querySelector('.warning-box').style.display = 'none';
+        document.querySelector('.main-card').style.display = 'none';
+        document.getElementById('textDisplay').classList.add('show');
+        document.title = data.title + ' - Grantexte';
+    } catch (error) {
+        showTextError(textId);
+    }
+}
+
+function showRedirectPage(data) {
+    document.getElementById('displayContent').innerHTML = '<div style="text-align: center; padding: 3rem;"><h2 style="color: #374151; margin-bottom: 1rem;">Redirection en cours</h2><p style="color: #6b7280; margin-bottom: 2rem;">Vous allez être redirigé vers :</p><div style="background: #f3f4f6; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; word-break: break-all;"><strong>' + data.targetUrl + '</strong></div><button onclick="window.location.href=\'' + data.targetUrl + '\'" class="btn" style="width: auto;">Aller vers le lien</button></div>';
+    
+    document.querySelector('.header').style.display = 'none';
+    document.querySelector('.info-box').style.display = 'none';
+    document.querySelector('.warning-box').style.display = 'none';
+    document.querySelector('.main-card').style.display = 'none';
+    document.getElementById('textDisplay').classList.add('show');
+    
+    setTimeout(() => { window.location.href = data.targetUrl; }, 3000);
+}
+
+function showTextError(textId) {
+    document.getElementById('displayTitle').textContent = 'Contenu introuvable';
+    document.getElementById('displayContent').innerHTML = '<div style="text-align: center; padding: 2rem;"><h2 style="color: #374151;">Ce contenu n\'existe pas</h2><p>Le contenu demandé est introuvable.</p></div>';
+    document.querySelector('.header').style.display = 'none';
+    document.querySelector('.main-card').style.display = 'none';
+    document.getElementById('textDisplay').classList.add('show');
+}
+
+function showError(message, elementId) {
+    const errorDiv = document.getElementById(elementId);
+    errorDiv.textContent = message;
+    errorDiv.classList.add('show');
+    setTimeout(() => errorDiv.classList.remove('show'), 10000);
+}
+function copyUrl() {
+    const url = document.getElementById('resultUrl').textContent;
+    navigator.clipboard.writeText(url).then(() => {
+        const successMsg = document.getElementById('successMessage');
+        successMsg.classList.add('show');
+        setTimeout(() => successMsg.classList.remove('show'), 3000);
+    }).catch(() => {
+        alert('Erreur lors de la copie');
+    });
+}
+
+function openTwitter() {
+    const url = document.getElementById('resultUrl').textContent;
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent('Découvrez ce contenu : ' + url), '_blank');
+}
+
+function openBluesky() {
+    const url = document.getElementById('resultUrl').textContent;
+    window.open('https://bsky.app/intent/compose?text=' + encodeURIComponent('Découvrez ce contenu : ' + url), '_blank');
+}
+
+function openFacebook() {
+    const url = document.getElementById('resultUrl').textContent;
+    window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank');
+}
+
+function previewContent() {
+    if (currentGistId) {
+        loadText(currentGistId);
+    }
+}
+
+function newText() {
+    document.getElementById('textMode').style.display = 'block';
+    document.getElementById('urlMode').style.display = 'none';
+    document.getElementById('resultSection').classList.remove('show');
+    document.getElementById('title').value = '';
+    document.getElementById('content').value = '';
+    document.getElementById('urlTitle').value = '';
+    document.getElementById('urlInput').value = '';
+    currentGistId = null;
+    switchMode('text');
+}
+
+function backToHome() {
+    document.getElementById('textDisplay').classList.remove('show');
+    document.querySelector('.header').style.display = 'block';
+    document.querySelector('.info-box').style.display = 'block';
+    document.querySelector('.warning-box').style.display = 'block';
+    document.querySelector('.main-card').style.display = 'block';
+    document.getElementById('textMode').style.display = 'block';
+    document.getElementById('urlMode').style.display = 'none';
+    document.getElementById('resultSection').classList.remove('show');
+    
+    const url = new URL(window.location);
+    url.search = '';
+    window.history.pushState({}, '', url);
+    document.title = 'Grantexte - Partage de liens et contenus';
+    currentGistId = null;
+}
+
+function copyTextContent() {
+    const content = document.getElementById('displayContent').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+        alert('Texte copié');
+    });
+}
+
+function copyCurrentUrl() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Lien copié');
+    });
+}
+
+// Événements
+document.getElementById('modeText').addEventListener('click', () => switchMode('text'));
+document.getElementById('modeUrl').addEventListener('click', () => switchMode('url'));
+
+document.getElementById('textForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('title').value.trim();
+    const content = document.getElementById('content').value.trim();
+    if (!content) {
+        showError('Veuillez saisir du contenu à partager.', 'errorMessage');
+        return;
+    }
+    await createTextLink(title, content);
+});
+
+document.getElementById('urlForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('urlTitle').value.trim();
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) {
+        showError('Veuillez saisir une URL à raccourcir.', 'urlErrorMessage');
+        return;
+    }
+    try {
+        new URL(url);
+    } catch {
+        showError('URL invalide. Assurez-vous qu\'elle commence par http:// ou https://', 'urlErrorMessage');
+        return;
+    }
+    await createUrlLink(title, url);
+});
+
+document.getElementById('copyUrlBtn').addEventListener('click', copyUrl);
+document.getElementById('twitterBtn').addEventListener('click', openTwitter);
+document.getElementById('blueskyBtn').addEventListener('click', openBluesky);
+document.getElementById('facebookBtn').addEventListener('click', openFacebook);
+document.getElementById('previewBtn').addEventListener('click', previewContent);
+document.getElementById('newTextBtn').addEventListener('click', newText);
+document.getElementById('backHomeBtn').addEventListener('click', backToHome);
+document.getElementById('copyTextBtn').addEventListener('click', copyTextContent);
+document.getElementById('copyCurrentUrlBtn').addEventListener('click', copyCurrentUrl);
+
+// Navigation
+window.addEventListener('popstate', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const textId = urlParams.get('t') || urlParams.get('u');
+    if (textId) {
+        loadText(textId);
+    } else {
+        backToHome();
+    }
+});
+
+// Chargement initial
+const urlParams = new URLSearchParams(window.location.search);
+const textId = urlParams.get('t') || urlParams.get('u');
+if (textId) {
+    loadText(textId);
+}
+
+// Touche Echap
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('resultSection').classList.contains('show')) {
+        backToHome();
+    }
+});
+    </script>
+</body>
+</html>
+
